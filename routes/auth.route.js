@@ -6,10 +6,24 @@ const bcrypt = require('bcryptjs');//import bcrypt, encrypt password
 //validation
 const { check,validationResult } = require('express-validator');
 const gravatar = require('gravatar');//import gravatar email to avatar
+const auth = require('../middleware/auth');//import auth middleware
 
 
 //import models
 const User = require('../models/user');
+
+
+router.get('/', auth, async (req, res) => {
+    try {
+        //get all users
+        const user = await User.findById(req.user.id).select('-password');
+        res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Fail Error');
+    }
+})
+
 
 //route post api/users
 
@@ -56,6 +70,35 @@ router.post('/register',[
     }catch(err){ //
         console.error(err.message);
         res.status(500).send('Server Error');//view error 500
+    }
+});
+
+router.post('/login',[check('email', 'email correcto x favor').isEmail(),
+check('password', "password is required").exists()] ,async (req,res)=>{
+    const {email,password} = req.body; //get data from req.body
+    try{ 
+        let user = await User.findOne({email});
+        if(!user){
+            return res.status(400).json({msg:'User not found'});//if user not found return 400
+        }
+        const isMatch = await bcrypt.compare(password,user.password);
+        if(!isMatch){
+            return res.status(400).json({msg:'Invalid credentials'});
+        }
+        const payload = {
+            user:{
+                id:user.id
+            }
+        }
+        jwt.sign(payload,process.env.JWT_SECRET,{ 
+            expiresIn:360000
+        },(err,token)=>{
+            if(err) throw err;
+            res.json({token});
+        });
+    }catch(err){
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
 });
 
