@@ -3,6 +3,7 @@ const router= express.Router();
 const Category = require("../models/Category");
 const auth = require("../middleware/auth"); 
 const adminAuth = require("../middleware/adminAuth"); 
+const categoryById = require("../middleware/categoryById");
 
 const { check, validationResult } = require("express-validator"); //validation middleware
 
@@ -42,6 +43,11 @@ router.get('/all', async(req,res)=>{ //get api/category/all
         res.status(500).send('Server Error');
     }
 })
+
+router.post('/:categoryId', async(req,res)=>{ //post api/category/:categoryId
+    res.json(req.category);
+})
+
 
 module.exports = router; //export router
 
