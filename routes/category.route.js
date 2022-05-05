@@ -44,10 +44,36 @@ router.get('/all', async(req,res)=>{ //get api/category/all
     }
 })
 
-router.post('/:categoryId', async(req,res)=>{ //post api/category/:categoryId
+router.get('/:categoryId', async(req,res)=>{ //post api/category/:categoryId
     res.json(req.category);
 })
 
+router.put('/:categoryId', auth,adminAuth,categoryById, async(req,res)=>{ //put api/category/:categoryId))
+    let category = req.category;
+    const {name} = req.body;
+    if(name)category.name = name.trim();
+    try {
+        category=await category.save();
+        res.json(category);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+    
+})
+
+router.delete('/:categoryId', auth, adminAuth, categoryById, async (req, res) => {
+    let category = req.category;
+    try {
+        let deletedCategory = await category.remove()
+        res.json({
+            message: `${deletedCategory.name} deleted successfully`
+        })
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).send('Server error');
+    }
+})
 
 module.exports = router; //export router
 
